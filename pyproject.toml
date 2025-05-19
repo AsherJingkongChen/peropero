@@ -4,8 +4,10 @@ requires = ["setuptools >= 68.0"]
 
 [project]
 dependencies = [
-  "fastapi",
-  "uvicorn[standard]",
+  "fastapi >= 0.115.12",
+  "numpy >= 2.0.2",
+  "uvicorn[standard] >= 0.34.2",
+  "torch >= 2.7.0",
 ]
 name = "vast_ai_uv_fastapi_demo"
 requires-python = ">= 3.9"
@@ -14,3 +16,8 @@ version = "0.1.0"
 [tool.setuptools.packages.find]
 include = ["server*"]
 where = ["."]
+
+[dependency-groups]
+dev = [
+  "ruff >= 0.11.10",
+]

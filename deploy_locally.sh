@@ -17,7 +17,7 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
     git clone -q \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \"/opt/${YOUR_PROJECT_NAME}\"; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
-SERVER_ACCESS_TOKEN='${YOUR_SERVER_SECRET_TOKEN}' uv run uvicorn server:app --host 0.0.0.0 --port 8000"
+SERVER_ACCESS_TOKEN='${YOUR_SERVER_SECRET_TOKEN}' uv run uvicorn server:app --host 0.0.0.0 --port 8888"
 
 echo "Creating instance..."
 CREATE_OUTPUT=$(vastai create instance "${YOUR_VAST_OFFER_ID}" \
@@ -59,7 +59,7 @@ fi
 sleep 30
 echo ""
 echo "Instance created."
-echo "SSH Tunnel: ssh${SSH_CMD_OPTIONS} -L 8888:localhost:8000 root@${INSTANCE_SSH_HOST} -p ${INSTANCE_SSH_PORT}"
+echo "SSH Tunnel: ssh${SSH_CMD_OPTIONS} -L 8888:localhost:8888 root@${INSTANCE_SSH_HOST} -p ${INSTANCE_SSH_PORT}"
 echo "Test: curl http://localhost:8888/"
 echo "Secure Test: curl -H \"X-Access-Token: ${YOUR_SERVER_SECRET_TOKEN}\" http://localhost:8888/secure_data"
 echo "Destroy: vastai destroy instance ${NEW_INSTANCE_ID}"

@@ -1,17 +1,23 @@
 import os
-import uvicorn
-from fastapi import FastAPI, Header, HTTPException, status
-from typing import Optional
+import torch
 
-SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
-SERVER_PORT = int(os.getenv("SERVER_PORT", "8000"))
+from fastapi import FastAPI, Header, HTTPException, status
+from typing import Optional, List
+from pydantic import BaseModel
+
 SERVER_ACCESS_TOKEN = os.getenv("SERVER_ACCESS_TOKEN", "token")
 
 app = FastAPI()
 
+
+class TensorInput(BaseModel):
+    data: List[List[float]]
+
+
 @app.get("/")
 async def read_root():
     return {"message": "FastAPI server is running!"}
+
 
 @app.get("/secure_data")
 async def read_secure_data(x_access_token: Optional[str] = Header(None)):
@@ -21,5 +27,19 @@ async def read_secure_data(x_access_token: Optional[str] = Header(None)):
         )
     return {"message": "Secure data accessed."}
 
-if __name__ == "__main__":
-    uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
+
+@app.post("/tensor/mean")
+async def post_tensor_mean(payload: TensorInput):
+    device = get_device()
+    input_tensor = torch.tensor(payload.data, dtype=torch.float32).to(device)
+    mean_value = torch.mean(input_tensor).item()
+    return {"item": mean_value, "device": str(device)}
+
+
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif torch.mps.is_available():
+        return torch.device("mps")
+    else:
+        return torch.device("cpu")
