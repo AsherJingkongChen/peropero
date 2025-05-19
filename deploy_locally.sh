@@ -3,7 +3,6 @@ set -e
 
 YOUR_GITHUB_USERNAME="AsherJingkongChen"
 YOUR_PROJECT_NAME="vast_ai_uv_fastapi_demo"
-YOUR_SERVER_SECRET_TOKEN="token"
 
 read -p "Vast.ai Offer ID: " YOUR_VAST_OFFER_ID
 if [ -z "${YOUR_VAST_OFFER_ID}" ]; then echo "Offer ID missing" >&2; exit 1; fi
@@ -17,7 +16,7 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
     git clone -q \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \"/opt/${YOUR_PROJECT_NAME}\"; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
-SERVER_ACCESS_TOKEN='${YOUR_SERVER_SECRET_TOKEN}' uv run uvicorn server:app --host 0.0.0.0 --port 8888"
+uv run uvicorn server:app --host 0.0.0.0 --port 8888"
 
 echo "Creating instance..."
 CREATE_OUTPUT=$(vastai create instance "${YOUR_VAST_OFFER_ID}" \
@@ -41,7 +40,7 @@ if [ -n "${YOUR_SSH_PUBLIC_KEY_PATH}" ]; then
     fi
 fi
 
-echo "Instance creation initiated. Monitor setup with: vastai logs ${NEW_INSTANCE_ID}"
+echo "Instance creation initiated. Please wait for several minutes or monitor setup with: vastai logs ${NEW_INSTANCE_ID}"
 
 INSTANCE_DETAILS_JSON=$(vastai show instance "${NEW_INSTANCE_ID}" --raw 2>/dev/null || echo "")
 INSTANCE_SSH_HOST=$(echo "${INSTANCE_DETAILS_JSON}" | jq -r '.ssh_host // "[SSH_HOST]"')
@@ -56,11 +55,8 @@ if [ -n "${YOUR_SSH_PUBLIC_KEY_PATH}" ]; then
     fi
 fi
 
-sleep 30
-echo ""
-echo "Instance created."
+echo "---"
 echo "SSH Tunnel: ssh${SSH_CMD_OPTIONS} -L 8888:localhost:8888 root@${INSTANCE_SSH_HOST} -p ${INSTANCE_SSH_PORT}"
 echo "Test: curl http://localhost:8888/"
-echo "Secure Test: curl -H \"X-Access-Token: ${YOUR_SERVER_SECRET_TOKEN}\" http://localhost:8888/secure_data"
 echo "Destroy: vastai destroy instance ${NEW_INSTANCE_ID}"
 exit 0

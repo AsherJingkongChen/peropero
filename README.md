@@ -34,11 +34,6 @@ After deployment and SSH port forwarding (`ssh -L 8888:localhost:8888 root@<INST
     ```bash
     curl http://localhost:8888/
     ```
--   **GET /secure_data**: Returns a secure message. Requires a valid `X-Access-Token`.
-    (Replace `<YOUR_SERVER_SECRET_TOKEN>` with the actual token).
-    ```bash
-    curl -H "X-Access-Token: <YOUR_SERVER_SECRET_TOKEN>" http://localhost:8888/secure_data
-    ```
 -   **POST /tensor/mean**: Calculates the mean of a 2D float tensor.
     -   Payload: `{"data": [[<float>, ...], ...]}`
     -   Returns: `{"item": <float>, "device": "<cpu|cuda|mps>"}`
@@ -60,5 +55,5 @@ After deployment and SSH port forwarding (`ssh -L 8888:localhost:8888 root@<INST
     ```
 2.  Run the server locally:
     ```bash
-    SERVER_ACCESS_TOKEN='token' uv run uvicorn server:app --host localhost --port 8888 --reload
+    uv run uvicorn server:app --host localhost --port 8888 --reload
     ```
