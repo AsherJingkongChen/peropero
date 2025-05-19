@@ -14,15 +14,16 @@ Deploy a Python FastAPI server to Vast.ai using `uv`.
 
 ## Deployment
 
-1.  Clone repository.
+1.  Find instance offer IDs at [vast.ai](https://cloud.vast.ai/create/) (required in `deploy_locally.sh`).
+2.  Clone repository.
     ```bash
     git clone https://github.com/AsherJingkongChen/vast_ai_uv_fastapi_demo.git
     cd vast_ai_uv_fastapi_demo
     ```
-2.  ```bash
+3.  ```bash
     chmod +x deploy_locally.sh
     ```
-3.  ```bash
+4.  ```bash
     ./deploy_locally.sh
     ```
 
