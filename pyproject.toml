@@ -1,0 +1,16 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 68.0"]
+
+[project]
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+]
+name = "vast_ai_uv_fastapi_demo"
+requires-python = ">= 3.9"
+version = "0.1.0"
+
+[tool.setuptools.packages.find]
+include = ["server*"]
+where = ["."]
