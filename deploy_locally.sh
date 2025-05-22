@@ -15,15 +15,21 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
     curl -LSsf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1 && \
     git clone --recursive --quiet \
         \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \
-        \"/opt/${YOUR_PROJECT_NAME}\"; \
+        \"/opt/${YOUR_PROJECT_NAME}\" && \
+    cd \"/opt/${YOUR_PROJECT_NAME}\" && \
+    uv sync --quiet && \
+    mkdir -p server/NoPoSplat/pretrained_weights && \
+    curl -fsSL https://huggingface.co/botaoye/NoPoSplat/resolve/main/re10k.ckpt \
+        -o server/NoPoSplat/pretrained_weights/re10k.ckpt && \
+    uv pip install --no-build-isolation git+https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git && \
+    cd - > /dev/null; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
-uv sync --quiet && \
 uv run uvicorn server:app --host 0.0.0.0 --port 8888"
 
 echo "Creating instance..."
 CREATE_OUTPUT=$(vastai create instance "${YOUR_VAST_OFFER_ID}" \
-    --image pytorch/pytorch:latest --disk 16 \
+    --image vastai/base-image:cuda-12.4.1-auto --disk 24 \
     --onstart-cmd "${ONSTART_CMD}"
 )
 

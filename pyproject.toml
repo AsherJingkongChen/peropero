@@ -34,7 +34,7 @@ dependencies = [
   "svg.py >= 0.1",
   "scikit-video >= 1.1.0",
   "opencv-python >= 4.7.0",
-  "python-multipart>=0.0.20",
+  "python-multipart >= 0.0.20",
 ]
 name = "peropero"
 requires-python = ">= 3.9"
