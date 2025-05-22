@@ -26,10 +26,10 @@ class CUDADependencyMissingError(RuntimeError):
 
 _CUDA_DEPENDENCIES_AVAILABLE: bool = True
 _model: Optional["ModelWrapper"] = None
-_config: Optional["RootConfig"] = None
+_config: Optional["RootCfg"] = None
 
 try:
-    from src.config import load_typed_root_config, RootConfig
+    from src.config import load_typed_root_config, RootCfg
     from src.global_cfg import set_cfg
     from src.model.decoder import get_decoder
     from src.model.encoder import get_encoder
@@ -48,7 +48,7 @@ except ImportError as ie:
         )
         _CUDA_DEPENDENCIES_AVAILABLE = False
         ModelWrapper = None
-        RootConfig = None
+        RootCfg = None
     else:
         raise
 
