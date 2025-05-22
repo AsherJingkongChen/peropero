@@ -17,11 +17,13 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
         \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \
         \"/opt/${YOUR_PROJECT_NAME}\" && \
     cd \"/opt/${YOUR_PROJECT_NAME}\" && \
-    uv sync --quiet && \
     mkdir -p server/NoPoSplat/pretrained_weights && \
     curl -fsSL https://huggingface.co/botaoye/NoPoSplat/resolve/main/re10k.ckpt \
         -o server/NoPoSplat/pretrained_weights/re10k.ckpt && \
-    uv pip install --no-build-isolation git+https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git && \
+    echo \"Installing dependencies...\" && \
+    uv sync --quiet && \
+    uv pip install --no-build-isolation --quiet \
+        git+https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git && \
     cd - > /dev/null; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \

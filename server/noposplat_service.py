@@ -10,6 +10,8 @@ from plyfile import PlyData, PlyElement
 from scipy.spatial.transform import Rotation as SciPyRotation
 from typing import List, Optional, Tuple, Dict
 from PIL import Image
+from hydra import compose, initialize_config_dir
+from hydra.core.global_hydra import GlobalHydra
 
 _current_dir = Path(__file__).parent
 NOPOSPLAT_ROOT = _current_dir / "NoPoSplat"
@@ -100,76 +102,33 @@ def init_noposplat_model():
         return
 
     try:
-        main_cfg_path = NOPOSPLAT_ROOT / "config" / "main.yaml"
-        dataset_name = "re10k"
-        dataset_cfg_path = (
-            NOPOSPLAT_ROOT / "config" / "dataset" / f"{dataset_name}.yaml"
-        )
-        exp_cfg_path = NOPOSPLAT_ROOT / "config" / "experiment" / f"{dataset_name}.yaml"
-
-        main_conf = OmegaConf.load(main_cfg_path)
-        dataset_specific_conf = OmegaConf.load(dataset_cfg_path)
-        exp_conf = OmegaConf.load(exp_cfg_path)
-
-        dataset_base_dict = OmegaConf.to_container(dataset_specific_conf, resolve=True)
-
-        if exp_conf.get("dataset") and exp_conf.dataset.get(dataset_name):
-            exp_dataset_override_dict = OmegaConf.to_container(
-                exp_conf.dataset.get(dataset_name), resolve=True
-            )
-            if isinstance(dataset_base_dict, dict) and isinstance(
-                exp_dataset_override_dict, dict
-            ):
-                dataset_base_dict.update(exp_dataset_override_dict)
-            elif not isinstance(dataset_base_dict, dict):
-                logger.warning(
-                    f"Base dataset config for {dataset_name} ('{dataset_cfg_path}') did not resolve to a dictionary. Using experiment override directly if it's a dict."
-                )
-                if isinstance(exp_dataset_override_dict, dict):
-                    dataset_base_dict = exp_dataset_override_dict
-                else:
-                    logger.error(
-                        f"Neither base dataset config nor experiment override for {dataset_name} are dictionaries. Configuration is likely incorrect."
-                    )
-                    dataset_base_dict = {}
-            elif not isinstance(exp_dataset_override_dict, dict):
-                logger.warning(
-                    f"Experiment override for dataset {dataset_name} in '{exp_cfg_path}' is not a dictionary. Skipping update of dataset config with this override."
-                )
-
-        re10k_plain_dataset_dict = dataset_base_dict
-
-        merged_oc_cfg = OmegaConf.merge(main_conf, exp_conf)
-
-        merged_oc_cfg.dataset = OmegaConf.create(
-            {dataset_name: re10k_plain_dataset_dict}
-        )
-
-        merged_oc_cfg.mode = "test"
-        merged_oc_cfg.wandb.mode = "disabled"
+        config_dir = str(NOPOSPLAT_ROOT / "config")
+        
+        # Clear any existing Hydra instance
+        GlobalHydra.instance().clear()
+        
+        # Use Hydra to properly compose the configuration
+        with initialize_config_dir(config_dir=config_dir, version_base=None):
+            cfg = compose(config_name="experiment/re10k.yaml")
+        
+        # Override specific settings for test mode
+        cfg.mode = "test"
+        cfg.wandb.mode = "disabled"
         checkpoint_file = NOPOSPLAT_ROOT / "pretrained_weights" / "re10k.ckpt"
-        merged_oc_cfg.checkpointing.load = str(checkpoint_file)
+        cfg.checkpointing.load = str(checkpoint_file)
+        
+        # Remove hydra configuration that causes issues
+        if hasattr(cfg, "hydra"):
+            OmegaConf.set_struct(cfg, False)
+            del cfg.hydra
+            OmegaConf.set_struct(cfg, True)
+        
+        # Convert to plain dict and back to ensure clean structure
+        cfg_dict = OmegaConf.to_container(cfg, resolve=True)
+        final_cfg = OmegaConf.create(cfg_dict)
 
-        if OmegaConf.is_dict(merged_oc_cfg) and hasattr(merged_oc_cfg, "hydra"):
-            OmegaConf.set_struct(merged_oc_cfg, False)
-            if hasattr(merged_oc_cfg.hydra, "run"):
-                del merged_oc_cfg.hydra.run
-            if hasattr(merged_oc_cfg.hydra, "job"):
-                del merged_oc_cfg.hydra.job
-            if hasattr(merged_oc_cfg.hydra, "sweep"):
-                del merged_oc_cfg.hydra.sweep
-
-            if not merged_oc_cfg.hydra:
-                del merged_oc_cfg.hydra
-            else:
-                OmegaConf.set_struct(merged_oc_cfg.hydra, True)
-            OmegaConf.set_struct(merged_oc_cfg, True)
-
-        plain_merged_oc_dict = OmegaConf.to_container(merged_oc_cfg, resolve=True)
-        final_cfg_for_loading = OmegaConf.create(plain_merged_oc_dict)
-
-        set_cfg(final_cfg_for_loading)
-        typed_cfg = load_typed_root_config(final_cfg_for_loading)
+        set_cfg(final_cfg)
+        typed_cfg = load_typed_root_config(final_cfg)
         _config = typed_cfg
 
         if (
