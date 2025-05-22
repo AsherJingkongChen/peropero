@@ -52,77 +52,7 @@ except ImportError as ie:
     else:
         raise
 
-from omegaconf import DictConfig, listconfig
-
-BASE_DATASET_CFG_FIELDS = [
-    "original_image_shape", "input_image_shape", "background_color",
-    "cameras_are_circular", "overfit_to_scene", "view_sampler"
-]
-RE10K_SPECIFIC_CFG_FIELDS = [
-    "name", "roots", "baseline_min", "baseline_max", "max_fov",
-    "make_baseline_1", "augment", "relative_pose", "skip_bad_shape"
-]
-SCANNET_POSE_SPECIFIC_CFG_FIELDS = RE10K_SPECIFIC_CFG_FIELDS
-VIEW_SAMPLER_BOUNDED_CFG_FIELDS = [
-    "name", "num_context_views", "num_target_views",
-    "min_distance_between_context_views", "max_distance_between_context_views",
-    "min_distance_to_context_views", "warm_up_steps",
-    "initial_min_distance_between_context_views", "initial_max_distance_between_context_views"
-]
-VIEW_SAMPLER_ALL_CFG_FIELDS = ["name"]
-VIEW_SAMPLER_ARBITRARY_CFG_FIELDS = ["name", "num_context_views", "num_target_views"]
-VIEW_SAMPLER_EVALUATION_CFG_FIELDS = ["name", "num_views"]
-
-def get_expected_fields_for_dataset(dataset_name_key: str) -> list[str]:
-    if dataset_name_key in ("re10k", "dl3dv", "scannetpp"):
-        return BASE_DATASET_CFG_FIELDS + RE10K_SPECIFIC_CFG_FIELDS
-    elif dataset_name_key == "scannet_pose":
-        return BASE_DATASET_CFG_FIELDS + SCANNET_POSE_SPECIFIC_CFG_FIELDS
-    else:
-        logger.warning(f"Unknown dataset type '{dataset_name_key}' for field cleaning. Using common fields.")
-        return BASE_DATASET_CFG_FIELDS
-
-def get_expected_fields_for_view_sampler(sampler_name: str) -> list[str]:
-    if sampler_name == "bounded":
-        return VIEW_SAMPLER_BOUNDED_CFG_FIELDS
-    elif sampler_name == "all":
-        return VIEW_SAMPLER_ALL_CFG_FIELDS
-    elif sampler_name == "arbitrary":
-        return VIEW_SAMPLER_ARBITRARY_CFG_FIELDS
-    elif sampler_name == "evaluation":
-        return VIEW_SAMPLER_EVALUATION_CFG_FIELDS
-    else:
-        logger.warning(f"Unknown view sampler type '{sampler_name}'. Returning minimal fields ('name').")
-        return ["name"]
-
-def _clean_config_dict(raw_dict, expected_fields: list[str], dataset_key_for_sampler: str = None) -> dict:
-    cleaned_dict = {}
-    if not hasattr(raw_dict, 'items'):
-        return raw_dict
-
-    for field_name in expected_fields:
-        if field_name in raw_dict:
-            if field_name == "view_sampler" and isinstance(raw_dict[field_name], (dict, DictConfig)):
-                sampler_config_raw = raw_dict[field_name]
-                sampler_name = sampler_config_raw.get("name")
-                if sampler_name:
-                    expected_sampler_fields = get_expected_fields_for_view_sampler(sampler_name)
-                    cleaned_dict[field_name] = _clean_config_dict(sampler_config_raw, expected_sampler_fields)
-                else:
-                    logger.warning(f"view_sampler for {dataset_key_for_sampler} has no 'name' field. Passing raw.")
-                    cleaned_dict[field_name] = OmegaConf.to_container(sampler_config_raw, resolve=True)
-            elif field_name == "roots" and isinstance(raw_dict[field_name], (list, listconfig.ListConfig)):
-                cleaned_dict[field_name] = [str(p) for p in raw_dict[field_name]]
-            else:
-                value = raw_dict[field_name]
-                if isinstance(value, DictConfig):
-                    logger.warning(f"Field '{field_name}' is a DictConfig but not explicitly handled. Converting to dict.")
-                    cleaned_dict[field_name] = OmegaConf.to_container(value, resolve=True)
-                elif isinstance(value, listconfig.ListConfig):
-                     cleaned_dict[field_name] = OmegaConf.to_container(value, resolve=True)
-                else:
-                    cleaned_dict[field_name] = value
-    return cleaned_dict
+from omegaconf import DictConfig
 
 _device_str: str = "cpu"
 _target_image_shape: Tuple[int, int] = (256, 256)
@@ -161,29 +91,31 @@ def init_noposplat_model():
         return
 
     try:
-        base_cfg_path = NOPOSPLAT_ROOT / "config" / "main.yaml"
-        exp_cfg_path = NOPOSPLAT_ROOT / "config" / "experiment" / "re10k.yaml"
+        main_cfg_path = NOPOSPLAT_ROOT / "config" / "main.yaml"
+        dataset_name = "re10k" 
+        dataset_cfg_path = NOPOSPLAT_ROOT / "config" / "dataset" / f"{dataset_name}.yaml"
+        exp_cfg_path = NOPOSPLAT_ROOT / "config" / "experiment" / f"{dataset_name}.yaml"
 
-        base_oc_cfg = OmegaConf.load(base_cfg_path)
-        exp_oc_cfg = OmegaConf.load(exp_cfg_path)
-        merged_oc_cfg = OmegaConf.merge(base_oc_cfg, exp_oc_cfg)
+        main_conf = OmegaConf.load(main_cfg_path)
+        dataset_specific_conf = OmegaConf.load(dataset_cfg_path)
+        exp_conf = OmegaConf.load(exp_cfg_path)
+
+        merged_oc_cfg = OmegaConf.merge(main_conf, exp_conf)
+
+        final_dataset_conf_for_key = dataset_specific_conf.copy()
+        if exp_conf.get("dataset") and exp_conf.dataset.get(dataset_name):
+            final_dataset_conf_for_key = OmegaConf.merge(final_dataset_conf_for_key, exp_conf.dataset.get(dataset_name))
+        
+        merged_oc_cfg.dataset = OmegaConf.create({dataset_name: final_dataset_conf_for_key})
 
         merged_oc_cfg.mode = "test"
         merged_oc_cfg.wandb.mode = "disabled"
         checkpoint_file = NOPOSPLAT_ROOT / "pretrained_weights" / "re10k.ckpt"
         merged_oc_cfg.checkpointing.load = str(checkpoint_file)
 
-        if hasattr(merged_oc_cfg, "dataset") and isinstance(merged_oc_cfg.dataset, (dict, DictConfig)):
-            cleaned_datasets_config = {}
-            for dataset_key, raw_dataset_conf in merged_oc_cfg.dataset.items():
-                if dataset_key == "defaults":
-                    continue
-                logger.info(f"Cleaning config for dataset: {dataset_key}")
-                expected_fields = get_expected_fields_for_dataset(dataset_key)
-                cleaned_conf = _clean_config_dict(raw_dataset_conf, expected_fields, dataset_key_for_sampler=dataset_key)
-                cleaned_datasets_config[dataset_key] = cleaned_conf
-            
-            merged_oc_cfg.dataset = OmegaConf.create(cleaned_datasets_config)
+        if hasattr(merged_oc_cfg, "dataset"):
+            plain_dataset_dict = OmegaConf.to_container(merged_oc_cfg.dataset, resolve=True)
+            merged_oc_cfg.dataset = OmegaConf.create(plain_dataset_dict)
         
         set_cfg(merged_oc_cfg)
         typed_cfg = load_typed_root_config(merged_oc_cfg)
