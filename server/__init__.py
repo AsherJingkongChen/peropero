@@ -39,7 +39,7 @@ async def startup_event():
     except Exception as e:
         logger.error(
             f"Failed to initialize NoPoSplat model during startup: {e}\n"
-            f"{''.join(traceback.format_tb(e.__traceback__)[-3:])}"
+            f"{''.join(traceback.format_tb(e.__traceback__))}"
         )
 
 
