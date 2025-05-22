@@ -2,7 +2,7 @@
 set -e
 
 YOUR_GITHUB_USERNAME="AsherJingkongChen"
-YOUR_PROJECT_NAME="vast_ai_uv_fastapi_demo"
+YOUR_PROJECT_NAME="peropero"
 
 read -p "Vast.ai Offer ID: " YOUR_VAST_OFFER_ID
 if [ -z "${YOUR_VAST_OFFER_ID}" ]; then echo "Offer ID missing" >&2; exit 1; fi
@@ -13,9 +13,12 @@ export PATH=\"\$HOME/.cargo/bin:\$HOME/.local/bin:\$PATH\"; \
 if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
     (apt-get update -y && apt-get install -y curl git) > /dev/null 2>&1 && \
     curl -LSsf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1 && \
-    git clone -q \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \"/opt/${YOUR_PROJECT_NAME}\"; \
+    git clone --recursive --quiet \
+        \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \
+        \"/opt/${YOUR_PROJECT_NAME}\"; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
+uv sync --quiet && \
 uv run uvicorn server:app --host 0.0.0.0 --port 8888"
 
 echo "Creating instance..."
