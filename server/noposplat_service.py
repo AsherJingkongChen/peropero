@@ -109,7 +109,7 @@ def init_noposplat_model():
         
         # Use Hydra's compose with overrides to handle all configuration composition
         with initialize_config_dir(config_dir=config_dir, version_base=None):
-            cfg = compose(config_name="main", overrides=["experiment=re10k"])
+            cfg = compose(config_name="main", overrides=["+experiment=re10k"])
         
         # Override specific settings for test mode
         cfg.mode = "test"
