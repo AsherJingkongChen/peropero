@@ -167,16 +167,10 @@ def init_noposplat_model():
         state_dict = ckpt_data.get("state_dict", ckpt_data)
         model_instance.load_state_dict(state_dict)
 
-        if "global_step" in ckpt_data:
-            model_instance.global_step = ckpt_data["global_step"]
-        else:
-            gs_default = 0
-            if hasattr(_config.model.encoder, "opacity_mapping") and hasattr(
-                _config.model.encoder.opacity_mapping, "warm_up"
-            ):
-                gs_default = _config.model.encoder.opacity_mapping.warm_up + 1000
-            model_instance.global_step = gs_default
-        logger.info(f"Model global_step set to: {model_instance.global_step}")
+        # Note: global_step is a read-only property in PyTorch Lightning ModelWrapper
+        # We skip setting it directly as it causes "can't set attribute" error
+        # The model will use its internal global_step management
+        logger.info(f"Model loaded. Current global_step: {model_instance.global_step}")
 
         model_instance.to(_device_str)
         model_instance.eval()
