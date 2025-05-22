@@ -107,9 +107,33 @@ def init_noposplat_model():
         # Clear any existing Hydra instance
         GlobalHydra.instance().clear()
         
-        # Use Hydra to properly compose the configuration
+        # Start with base main config and apply experiment overrides
         with initialize_config_dir(config_dir=config_dir, version_base=None):
-            cfg = compose(config_name="experiment/re10k.yaml")
+            # Get base configuration
+            cfg = compose(config_name="main")
+            
+            # Apply experiment-specific overrides
+            exp_conf = OmegaConf.load(NOPOSPLAT_ROOT / "config" / "experiment" / "re10k.yaml")
+            
+            # Apply dataset configuration
+            if "dataset" in exp_conf:
+                cfg.dataset = exp_conf.dataset
+            
+            # Apply model overrides (override /model/encoder/backbone: croco)
+            if "model" in exp_conf:
+                cfg.model = OmegaConf.merge(cfg.model, exp_conf.model)
+            
+            # Apply loss overrides (override /loss: [mse, lpips])
+            if "loss" in exp_conf:
+                cfg.loss = exp_conf.loss
+            
+            # Apply other experiment settings
+            for key in ["wandb", "optimizer", "data_loader", "trainer", "checkpointing"]:
+                if key in exp_conf:
+                    if hasattr(cfg, key):
+                        cfg[key] = OmegaConf.merge(cfg[key], exp_conf[key])
+                    else:
+                        cfg[key] = exp_conf[key]
         
         # Override specific settings for test mode
         cfg.mode = "test"
