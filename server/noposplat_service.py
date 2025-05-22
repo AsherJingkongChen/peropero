@@ -112,13 +112,12 @@ def init_noposplat_model():
         merged_oc_cfg.wandb.mode = "disabled"
         checkpoint_file = NOPOSPLAT_ROOT / "pretrained_weights" / "re10k.ckpt"
         merged_oc_cfg.checkpointing.load = str(checkpoint_file)
-
-        if hasattr(merged_oc_cfg, "dataset"):
-            plain_dataset_dict = OmegaConf.to_container(merged_oc_cfg.dataset, resolve=True)
-            merged_oc_cfg.dataset = OmegaConf.create(plain_dataset_dict)
         
-        set_cfg(merged_oc_cfg)
-        typed_cfg = load_typed_root_config(merged_oc_cfg)
+        plain_merged_oc_dict = OmegaConf.to_container(merged_oc_cfg, resolve=True)
+        final_cfg_for_loading = OmegaConf.create(plain_merged_oc_dict)
+        
+        set_cfg(final_cfg_for_loading)
+        typed_cfg = load_typed_root_config(final_cfg_for_loading)
         _config = typed_cfg
 
         if (
