@@ -36,6 +36,7 @@ async def startup_event():
     logger.info("Attempting to initialize NoPoSplat model on startup...")
     try:
         init_noposplat_model()
+        logger.info("NoPoSplat model initialized successfully.")
     except Exception as e:
         logger.error(
             f"Failed to initialize NoPoSplat model during startup: {e}\n"
