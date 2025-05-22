@@ -33,7 +33,14 @@ async def base_exception_handler(request: Request, exc: Exception):
 
 @app.on_event("startup")
 async def startup_event():
-    init_noposplat_model()
+    logger.info("Attempting to initialize NoPoSplat model on startup...")
+    try:
+        init_noposplat_model()
+    except Exception as e:
+        logger.error(
+            f"Failed to initialize NoPoSplat model during startup: {e}\n"
+            f"{''.join(traceback.format_tb(e.__traceback__)[-3:])}"
+        )
 
 
 @app.get("/")
