@@ -24,7 +24,7 @@ dependencies = [
   "scikit-image >= 0.20.0",
   "colorspacious >= 1.1.0",
   "matplotlib >= 3.7.0",
-  "moviepy >= 1.0.0",
+  "moviepy == 1.0.3",
   "imageio >= 2.30.0",
   "timm >= 0.9.0",
   "dacite >= 1.8.0",
