@@ -21,8 +21,10 @@ if str(SRC_ROOT) not in sys.path:
 
 logger = logging.getLogger("uvicorn")
 
+
 class CUDADependencyMissingError(RuntimeError):
     pass
+
 
 _CUDA_DEPENDENCIES_AVAILABLE: bool = True
 _model: Optional["ModelWrapper"] = None
@@ -58,13 +60,20 @@ _device_str: str = "cpu"
 _target_image_shape: Tuple[int, int] = (256, 256)
 _default_fov_degrees: float = 60.0
 
+
 def get_tch_device_str() -> str:
     if tch.cuda.is_available():
         return "cuda"
     return "cpu"
 
+
 def init_noposplat_model():
-    global _model, _config, _device_str, _target_image_shape, _CUDA_DEPENDENCIES_AVAILABLE
+    global \
+        _model, \
+        _config, \
+        _device_str, \
+        _target_image_shape, \
+        _CUDA_DEPENDENCIES_AVAILABLE
 
     if _model is not None:
         logger.info("NoPoSplat model already initialized.")
@@ -92,8 +101,10 @@ def init_noposplat_model():
 
     try:
         main_cfg_path = NOPOSPLAT_ROOT / "config" / "main.yaml"
-        dataset_name = "re10k" 
-        dataset_cfg_path = NOPOSPLAT_ROOT / "config" / "dataset" / f"{dataset_name}.yaml"
+        dataset_name = "re10k"
+        dataset_cfg_path = (
+            NOPOSPLAT_ROOT / "config" / "dataset" / f"{dataset_name}.yaml"
+        )
         exp_cfg_path = NOPOSPLAT_ROOT / "config" / "experiment" / f"{dataset_name}.yaml"
 
         main_conf = OmegaConf.load(main_cfg_path)
@@ -104,18 +115,37 @@ def init_noposplat_model():
 
         final_dataset_conf_for_key = dataset_specific_conf.copy()
         if exp_conf.get("dataset") and exp_conf.dataset.get(dataset_name):
-            final_dataset_conf_for_key = OmegaConf.merge(final_dataset_conf_for_key, exp_conf.dataset.get(dataset_name))
-        
-        merged_oc_cfg.dataset = OmegaConf.create({dataset_name: final_dataset_conf_for_key})
+            final_dataset_conf_for_key = OmegaConf.merge(
+                final_dataset_conf_for_key, exp_conf.dataset.get(dataset_name)
+            )
+
+        merged_oc_cfg.dataset = OmegaConf.create(
+            {dataset_name: final_dataset_conf_for_key}
+        )
 
         merged_oc_cfg.mode = "test"
         merged_oc_cfg.wandb.mode = "disabled"
         checkpoint_file = NOPOSPLAT_ROOT / "pretrained_weights" / "re10k.ckpt"
         merged_oc_cfg.checkpointing.load = str(checkpoint_file)
-        
+
+        if OmegaConf.is_dict(merged_oc_cfg) and hasattr(merged_oc_cfg, "hydra"):
+            OmegaConf.set_struct(merged_oc_cfg, False)
+            if hasattr(merged_oc_cfg.hydra, "run"):
+                del merged_oc_cfg.hydra.run
+            if hasattr(merged_oc_cfg.hydra, "job"):
+                del merged_oc_cfg.hydra.job
+            if hasattr(merged_oc_cfg.hydra, "sweep"):
+                del merged_oc_cfg.hydra.sweep
+
+            if not merged_oc_cfg.hydra:
+                del merged_oc_cfg.hydra
+            else:
+                OmegaConf.set_struct(merged_oc_cfg.hydra, True)
+            OmegaConf.set_struct(merged_oc_cfg, True)
+
         plain_merged_oc_dict = OmegaConf.to_container(merged_oc_cfg, resolve=True)
         final_cfg_for_loading = OmegaConf.create(plain_merged_oc_dict)
-        
+
         set_cfg(final_cfg_for_loading)
         typed_cfg = load_typed_root_config(final_cfg_for_loading)
         _config = typed_cfg
@@ -181,6 +211,7 @@ def init_noposplat_model():
         _CUDA_DEPENDENCIES_AVAILABLE = False
         raise
 
+
 def _calculate_initial_intrinsics(
     w_orig: int, h_orig: int, fov_degrees: float
 ) -> tch.Tensor:
@@ -191,6 +222,7 @@ def _calculate_initial_intrinsics(
     return tch.tensor(
         [[focal_x, 0, cx_orig], [0, focal_y, cy_orig], [0, 0, 1.0]], dtype=tch.float32
     )
+
 
 def _gaussians_to_ply_bytes_adapted(
     means: tch.Tensor,
@@ -259,6 +291,7 @@ def _gaussians_to_ply_bytes_adapted(
     mem_file = io.BytesIO()
     PlyData([ply_element], text=False).write(mem_file)
     return mem_file.getvalue()
+
 
 def reconstruct_scene_from_images(images: List[Image.Image]) -> bytes:
     if not _CUDA_DEPENDENCIES_AVAILABLE or _model is None:
