@@ -1,0 +1,3 @@
+[submodule "server/InstantSplat"]
+	path = server/InstantSplat
+	url = https://github.com/NVlabs/InstantSplat.git
