@@ -64,22 +64,29 @@ After deployment and SSH port forwarding (`ssh -L 8888:localhost:8888 root@<INST
     ```bash
     git submodule update --init --recursive
     ```
-2.  Install dependencies:
+2.  Download MASt3R checkpoint:
+    ```bash
+    cd server/InstantSplat
+    mkdir -p mast3r/checkpoints/
+    curl -fsSL https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth -o mast3r/checkpoints/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
+    cd ../..
+    ```
+3.  Install dependencies:
     ```bash
     uv sync
     ```
-3.  Install InstantSplat's custom CUDA modules:
+4.  Install InstantSplat's custom CUDA modules:
     ```bash
     uv pip install --no-build-isolation server/InstantSplat/submodules/simple-knn
     uv pip install --no-build-isolation server/InstantSplat/submodules/diff-gaussian-rasterization
     uv pip install --no-build-isolation server/InstantSplat/submodules/fused-ssim
     ```
-4.  Compile RoPE CUDA kernels (optional but recommended for performance):
+5.  Compile RoPE CUDA kernels (optional but recommended for performance):
     ```bash
     cd server/InstantSplat/croco/models/curope/
     uv run python setup.py build_ext --inplace
     cd ../../../../..
     ```
-5.  Run the server locally:
+6.  Run the server locally:
     ```bash
     uv run uvicorn server:app --host localhost --port 8888 --reload

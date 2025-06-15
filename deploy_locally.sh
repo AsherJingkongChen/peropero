@@ -17,6 +17,11 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
         \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \
         \"/opt/${YOUR_PROJECT_NAME}\" && \
     cd \"/opt/${YOUR_PROJECT_NAME}\" && \
+    echo \"Downloading MASt3R checkpoint...\" && \
+    cd server/InstantSplat && \
+    mkdir -p mast3r/checkpoints/ && \
+    curl -fsSL https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth -o mast3r/checkpoints/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth && \
+    cd ../.. && \
     echo \"Installing dependencies...\" && \
     uv sync --quiet && \
     echo \"Installing InstantSplat CUDA modules...\" && \
