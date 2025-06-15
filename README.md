@@ -34,8 +34,7 @@ Deploy a Python FastAPI server to Vast.ai using `uv`.
 ## Project Structure
 
 -   `server/`: Contains the FastAPI server code.
-    -   `NoPoSplat/`: Git submodule for the [NoPoSplat](https://github.com/cvg/NoPoSplat) library, used for 3D reconstruction.
-        -   **Important for CUDA:** Ensure `rmurai0610/diff-gaussian-rasterization-w-pose` (a key CUDA component for NoPoSplat) is correctly installed.
+    -   `InstantSplat/`: Git submodule for the [InstantSplat](https://github.com/NVlabs/InstantSplat) library, used for 3D reconstruction.
 
 ## Server Endpoints & Testing
 
@@ -44,12 +43,6 @@ After deployment and SSH port forwarding (`ssh -L 8888:localhost:8888 root@<INST
 -   **GET /**: Returns a welcome message.
     ```bash
     curl http://localhost:8888/
-    ```
--   **POST /tensor/mean**: Calculates the mean of a 2D float tensor.
-    -   Payload: `{"data": [[<float>, ...], ...]}`
-    -   Returns: `{"item": <float>, "device": "<cpu|cuda|mps>"}`
-    ```bash
-    curl -X POST -H "Content-Type: application/json" -d '{"data": [[1.0, 2.0], [3.0, 4.0]]}' http://localhost:8888/tensor/mean
     ```
 -   **POST /reconstruction**: Reconstructs a 3D scene from one or more images and returns a PLY file.
     -   Payload: image file(s) as form data.
@@ -71,20 +64,22 @@ After deployment and SSH port forwarding (`ssh -L 8888:localhost:8888 root@<INST
     ```bash
     git submodule update --init --recursive
     ```
-2.  Download NoPoSplat pretrained model (if not already present):
-    ```bash
-    mkdir -p server/NoPoSplat/pretrained_weights
-    curl -fsSL https://huggingface.co/botaoye/NoPoSplat/resolve/main/re10k.ckpt -o server/NoPoSplat/pretrained_weights/re10k.ckpt
-    ```
-3.  Install dependencies:
+2.  Install dependencies:
     ```bash
     uv sync
     ```
-4.  Install `rmurai0610/diff-gaussian-rasterization-w-pose` (for CUDA):
+3.  Install InstantSplat's custom CUDA modules:
     ```bash
-    uv pip install --no-build-isolation git+https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git
+    uv pip install --no-build-isolation server/InstantSplat/submodules/simple-knn
+    uv pip install --no-build-isolation server/InstantSplat/submodules/diff-gaussian-rasterization
+    uv pip install --no-build-isolation server/InstantSplat/submodules/fused-ssim
+    ```
+4.  Compile RoPE CUDA kernels (optional but recommended for performance):
+    ```bash
+    cd server/InstantSplat/croco/models/curope/
+    uv run python setup.py build_ext --inplace
+    cd ../../../../..
     ```
 5.  Run the server locally:
     ```bash
     uv run uvicorn server:app --host localhost --port 8888 --reload
-    ```
