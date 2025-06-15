@@ -68,6 +68,7 @@ class InstantSplatService:
             "--iterations", str(train_iterations),
             # "--pp_optimizer",
             # "--optim_pose",
+            "--sh_degree", "0",
             "--save_iterations", str(train_iterations),
         ]
 
