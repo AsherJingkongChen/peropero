@@ -2,21 +2,11 @@
 
 import os
 import subprocess
-import torch
-from functools import partial
 import shutil
 import uuid
 from pathlib import Path
 from typing import List
 from PIL import Image
-
-# --- Monkey Patch for torch.load ---
-# In PyTorch 2.6+, weights_only defaults to True for security.
-# The MASt3R checkpoint contains non-weight data, causing an UnpicklingError.
-# We patch torch.load to default to weights_only=False within this service's context,
-# avoiding modification of the InstantSplat submodule.
-torch.load = partial(torch.load, weights_only=False)
-# ------------------------------------
 
 class InstantSplatService:
     def __init__(self, model_path="server/InstantSplat"):
