@@ -25,12 +25,7 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
     echo \"Installing dependencies...\" && \
     uv sync --quiet && \
     echo \"Installing InstantSplat CUDA modules...\" && \
-    uv pip install --no-build-isolation --quiet server/InstantSplat/submodules/simple-knn && \
-    uv pip install --no-build-isolation --quiet server/InstantSplat/submodules/diff-gaussian-rasterization && \
-    uv pip install --no-build-isolation --quiet server/InstantSplat/submodules/fused-ssim && \
-    echo \"Compiling RoPE CUDA kernels...\" && \
-    cd server/InstantSplat/croco/models/curope/ && \
-    uv run python setup.py build_ext --inplace && \
+    uv pip install --no-build-isolation --quiet server/InstantSplat/submodules/* && \
     cd - > /dev/null; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
