@@ -40,7 +40,7 @@ class InstantSplatService:
             img.save(instantsplat_image_path / f"{i:04d}.png")
 
         # 2. Construct the training commands to be executed on the remote server
-        train_iterations = 1000
+        train_iterations = 500
         model_output_path = job_path / "output"
         model_output_path.mkdir(parents=True, exist_ok=True)
         
@@ -55,7 +55,7 @@ class InstantSplatService:
             "--n_views", str(len(images)),
             "--focal_avg",
             "--co_vis_dsp",
-            # "--conf_aware_ranking",
+            "--conf_aware_ranking",
         ]
 
         # Command for training
@@ -66,7 +66,7 @@ class InstantSplatService:
             "-r", "1",
             "--n_views", str(len(images)),
             "--iterations", str(train_iterations),
-            # "--pp_optimizer",
+            "--pp_optimizer",
             # "--optim_pose",
             "--save_iterations", str(train_iterations),
         ]
