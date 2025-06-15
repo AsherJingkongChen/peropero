@@ -48,7 +48,7 @@ After deployment and SSH port forwarding (`ssh -L 8888:localhost:8888 root@<INST
     -   Payload: image file(s) as form data.
     -   Returns: PLY binary file.
     ```bash
-    curl -X POST -F "images=@image1.png" -F "images=@image2.png" http://localhost:8888/reconstruction -o output.ply
+    curl -X POST -F "images=@views/0.jpg" -F "images=@views/1.jpg" -F "images=@views/2.jpg" http://localhost:8888/reconstruction -o output.ply
     ```
 
 ## Clean Up
