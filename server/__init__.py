@@ -9,16 +9,15 @@ from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
 from PIL import Image
 
+from .instantsplat_service import InstantSplatService
+
 app = FastAPI()
 
 logger = logging.getLogger("uvicorn")
 logging.getLogger("uvicorn.error").setLevel(logging.CRITICAL)
 
-from .instantsplat_service import InstantSplatService
-
 # Initialize the service
 instantsplat_service = InstantSplatService()
-
 
 @app.get("/")
 async def read_root():
@@ -26,8 +25,9 @@ async def read_root():
 
 
 @app.post("/reconstruction")
-async def reconstruct_scene_endpoint(images: List[UploadFile] = File(...)):
-    logger.info(f"Received reconstruction request for {len(images)} images.")
+async def reconstruct_scene_endpoint(request: Request, images: List[UploadFile] = File(...)):
+    client_host = request.client.host
+    logger.info(f"Received reconstruction request for {len(images)} images from {client_host}.")
     
     processed_images = []
     for file in images:
@@ -50,6 +50,9 @@ async def reconstruct_scene_endpoint(images: List[UploadFile] = File(...)):
             media_type="application/octet-stream",
             headers={"Content-Disposition": "attachment; filename=reconstruction.ply"},
         )
+    except ValueError as e:
+        logger.error(f"Invalid request: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except (RuntimeError, FileNotFoundError) as e:
         logger.error(f"Reconstruction failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

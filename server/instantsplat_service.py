@@ -25,6 +25,9 @@ class InstantSplatService:
         Returns:
             bytes: The binary content of the generated .ply file.
         """
+        if len(images) < 3:
+            raise ValueError(f"InstantSplat requires at least 3 images for reconstruction, but only {len(images)} were provided.")
+
         job_id = str(uuid.uuid4())
         job_path = self.output_root / job_id
         
