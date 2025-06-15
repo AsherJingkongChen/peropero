@@ -54,7 +54,7 @@ class InstantSplatService:
             "-m", str(model_output_path),
             "--n_views", str(len(images)),
             "--focal_avg",
-            "--co_vis_dsp",
+            # "--co_vis_dsp",
             "--conf_aware_ranking",
         ]
 
@@ -66,7 +66,7 @@ class InstantSplatService:
             "-r", "1",
             "--n_views", str(len(images)),
             "--iterations", str(train_iterations),
-            "--pp_optimizer",
+            # "--pp_optimizer",
             # "--optim_pose",
             "--save_iterations", str(train_iterations),
         ]
