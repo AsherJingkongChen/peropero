@@ -7,24 +7,6 @@ import uuid
 from pathlib import Path
 from typing import List
 from PIL import Image
-import pycolmap
-
-def convert_colmap_to_ply(colmap_sparse_path: Path, ply_output_path: Path):
-    """
-    Converts a COLMAP sparse reconstruction to a .ply file.
-    """
-    print("Checking for COLMAP files...")
-    for f in ["cameras.bin", "images.bin", "points3D.bin"]:
-        file_path = colmap_sparse_path / f
-        if not file_path.exists():
-            raise FileNotFoundError(f"Required COLMAP file not found: {file_path}")
-        print(f"Found {file_path}")
-
-    print("Initializing pycolmap.Reconstruction...")
-    reconstruction = pycolmap.Reconstruction(colmap_sparse_path)
-    print("Reconstruction initialized. Exporting to .ply...")
-    reconstruction.export_ply(ply_output_path)
-    print(".ply export complete.")
 
 class VGGTService:
     def __init__(self, model_path="server/VGGT"):
@@ -81,25 +63,16 @@ class VGGTService:
         if return_code:
             raise subprocess.CalledProcessError(return_code, cmd)
 
-        # 4. Locate and convert the output file
-        print("VGGT process finished. Converting to .ply...")
-        colmap_sparse_path = job_path / "sparse"
-        points_file = colmap_sparse_path / "points3D.bin"
+        # 4. Locate and read the output file
+        print("VGGT process finished. Reading .ply file...")
+        ply_path = job_path / "sparse" / "points.ply"
 
-        print(f"Checking for COLMAP points file at: {points_file}")
-        if not points_file.exists():
-            raise FileNotFoundError(f"Could not find the COLMAP points file at {points_file}")
-
-        ply_output_path = job_path / f"{scene_name}.ply"
-        print(f"Converting COLMAP sparse reconstruction to .ply at: {ply_output_path}")
-        convert_colmap_to_ply(colmap_sparse_path, ply_output_path)
-        
-        print(f"Checking for converted .ply file at: {ply_output_path}")
-        if not ply_output_path.exists():
-            raise FileNotFoundError(f"Could not find the converted .ply file at {ply_output_path}")
+        print(f"Checking for .ply file at: {ply_path}")
+        if not ply_path.exists():
+            raise FileNotFoundError(f"Could not find the .ply file at {ply_path}")
 
         print("Reading .ply file content...")
-        output_data = ply_output_path.read_bytes()
+        output_data = ply_path.read_bytes()
 
         # 5. Clean up the job directory
         print(f"Cleaning up job directory: {job_path}")
