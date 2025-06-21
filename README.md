@@ -126,7 +126,7 @@ vastai destroy instance <INSTANCE_ID>
 
 3.  **Install dependencies:**
     ```bash
-    uv sync
+    uv sync --no-build-isolation
     ```
 
 4.  **Install InstantSplat CUDA modules:**

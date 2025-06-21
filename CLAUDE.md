@@ -27,7 +27,7 @@ curl -fsSL https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_Vi
 cd ../..
 
 # Install dependencies
-uv sync
+uv sync --no-build-isolation
 
 # Install InstantSplat CUDA modules (GPU required)
 uv pip install --no-build-isolation server/InstantSplat/submodules/simple-knn
