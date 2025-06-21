@@ -31,7 +31,14 @@ dependencies = [
   "cython",
   "icecream",
   "open3d<1.0",
-  "pycolmap",
+  "pycolmap==3.10.0",
+  "viser==0.2.23",
+  "hydra-core",
+  "onnxruntime",
+  "requests",
+  "safetensors",
+  "pyceres==2.3",
+  "lightglue @ git+https://github.com/jytime/LightGlue.git#egg=lightglue",
 ]
 name = "peropero"
 requires-python = ">= 3.9"
