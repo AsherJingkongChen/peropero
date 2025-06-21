@@ -16,6 +16,7 @@ app = FastAPI()
 logger = logging.getLogger("uvicorn")
 logger.setLevel(logging.INFO)
 logging.getLogger("uvicorn.error").setLevel(logging.CRITICAL)
+logger.info("Starting VGGT server...")
 
 # Initialize the service
 vggt_service = VGGTService()
