@@ -48,10 +48,11 @@ class VGGTService:
             img.save(vggt_image_path / f"{i:04d}.png")
 
         # 2. Construct the training command
-        working_dir = self.model_path
+        working_dir = self.model_path.parent.parent # tools/view-to-3dgs
+        script_path = self.model_path / "demo_colmap.py"
         
         cmd = [
-            "python", "demo_colmap.py",
+            "python", str(script_path),
             "--scene_dir", str(job_path),
         ]
 
