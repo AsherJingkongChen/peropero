@@ -13,8 +13,18 @@ def convert_colmap_to_ply(colmap_sparse_path: Path, ply_output_path: Path):
     """
     Converts a COLMAP sparse reconstruction to a .ply file.
     """
+    print("Checking for COLMAP files...")
+    for f in ["cameras.bin", "images.bin", "points3D.bin"]:
+        file_path = colmap_sparse_path / f
+        if not file_path.exists():
+            raise FileNotFoundError(f"Required COLMAP file not found: {file_path}")
+        print(f"Found {file_path}")
+
+    print("Initializing pycolmap.Reconstruction...")
     reconstruction = pycolmap.Reconstruction(colmap_sparse_path)
+    print("Reconstruction initialized. Exporting to .ply...")
     reconstruction.export_ply(ply_output_path)
+    print(".ply export complete.")
 
 class VGGTService:
     def __init__(self, model_path="server/VGGT"):
