@@ -51,14 +51,14 @@ class VGGTService:
         working_dir = self.model_path
         
         cmd = [
-            "uv", "run", "python", "demo_colmap.py",
+            "python", "demo_colmap.py",
             "--scene_dir", str(job_path),
         ]
 
         # 3. Execute the command
         try:
-            print(f"Running VGGT for job {job_id}: {' '.join(cmd)}")
-            process = subprocess.run(cmd, check=True, cwd=working_dir, capture_output=True, text=True)
+            print(f"Running VGGT for job {job_id}: uv run {' '.join(cmd)}")
+            process = subprocess.run(["uv", "run"] + cmd, check=True, cwd=working_dir, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
             print(f"Error during VGGT execution for job {job_id}: {e}")
             print(f"stdout: {e.stdout}")
