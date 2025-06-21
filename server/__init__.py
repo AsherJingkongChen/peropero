@@ -9,15 +9,16 @@ from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
 from PIL import Image
 
-from .instantsplat_service import InstantSplatService
+from .vggt_service import VGGTService
 
 app = FastAPI()
 
 logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.INFO)
 logging.getLogger("uvicorn.error").setLevel(logging.CRITICAL)
 
 # Initialize the service
-instantsplat_service = InstantSplatService()
+vggt_service = VGGTService()
 
 @app.get("/")
 async def read_root():
@@ -44,7 +45,7 @@ async def reconstruct_scene_endpoint(request: Request, images: List[UploadFile] 
         )
 
     try:
-        ply_binary_data = instantsplat_service.reconstruct_scene(processed_images)
+        ply_binary_data = vggt_service.reconstruct_scene(processed_images)
         return Response(
             content=ply_binary_data,
             media_type="application/octet-stream",

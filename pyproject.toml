@@ -31,6 +31,7 @@ dependencies = [
   "cython",
   "icecream",
   "open3d<1.0",
+  "pycolmap",
 ]
 name = "peropero"
 requires-python = ">= 3.9"

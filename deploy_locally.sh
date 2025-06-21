@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-YOUR_GITHUB_USERNAME="AsherJingkongChen"
-YOUR_PROJECT_NAME="peropero"
-
 read -p "Vast.ai Offer ID: " YOUR_VAST_OFFER_ID
 if [ -z "${YOUR_VAST_OFFER_ID}" ]; then echo "Offer ID missing" >&2; exit 1; fi
 read -p "SSH PubKey Path (optional, e.g. ~/.ssh/id_ed25519.pub): " YOUR_SSH_PUBLIC_KEY_PATH
+
+YOUR_GITHUB_USERNAME="AsherJingkongChen"
+YOUR_PROJECT_NAME="peropero"
 
 ONSTART_CMD="\
 export PATH=\"\$HOME/.cargo/bin:\$HOME/.local/bin:\$PATH\"; \
@@ -17,15 +17,8 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
         \"https://github.com/${YOUR_GITHUB_USERNAME}/${YOUR_PROJECT_NAME}.git\" \
         \"/opt/${YOUR_PROJECT_NAME}\" && \
     cd \"/opt/${YOUR_PROJECT_NAME}\" && \
-    echo \"Downloading MASt3R checkpoint...\" && \
-    cd server/InstantSplat && \
-    mkdir -p mast3r/checkpoints/ && \
-    curl -fsSL https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth -o mast3r/checkpoints/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth && \
-    cd ../.. && \
     echo \"Installing dependencies...\" && \
     uv sync --quiet && \
-    echo \"Installing InstantSplat CUDA modules...\" && \
-    uv pip install --no-build-isolation --quiet server/InstantSplat/submodules/* && \
     cd - > /dev/null; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
