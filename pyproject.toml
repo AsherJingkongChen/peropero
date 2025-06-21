@@ -40,7 +40,7 @@ dependencies = [
   "pyceres==2.3",
   "lightglue @ git+https://github.com/jytime/LightGlue.git#egg=lightglue",
   "gsplat",
-  "fused_ssim",
+  "fused_ssim @ git+https://github.com/rahul-goel/fused-ssim.git",
   "ninja",
   "jaxtyping",
   "rich>=12",
