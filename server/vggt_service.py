@@ -63,18 +63,44 @@ class VGGTService:
         if return_code:
             raise subprocess.CalledProcessError(return_code, cmd)
 
-        # 4. Locate and read the output file
-        print("VGGT process finished. Reading .ply file...")
-        ply_path = job_path / "sparse" / "points.ply"
+        # 4. Run gsplat training
+        print("VGGT process finished. Starting gsplat training...")
+        gsplat_dir = working_dir / "server" / "gsplat"
+        gsplat_script_path = gsplat_dir / "examples" / "simple_trainer.py"
+        gsplat_output_dir = job_path / "gsplat_output"
+        
+        gsplat_cmd = [
+            "python", str(gsplat_script_path), "default",
+            "--data_factor", "1",
+            "--data_dir", str(job_path),
+            "--result_dir", str(gsplat_output_dir),
+        ]
 
-        print(f"Checking for .ply file at: {ply_path}")
-        if not ply_path.exists():
-            raise FileNotFoundError(f"Could not find the .ply file at {ply_path}")
+        print(f"Running gsplat for job {job_id}: uv run --active {' '.join(gsplat_cmd)}")
+        gsplat_process = subprocess.Popen(["uv", "run", "--active"] + gsplat_cmd, cwd=working_dir,
+                                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
-        print("Reading .ply file content...")
-        output_data = ply_path.read_bytes()
+        for line in iter(gsplat_process.stdout.readline, ''):
+            print(line, end='')
+        
+        gsplat_process.stdout.close()
+        gsplat_return_code = gsplat_process.wait()
 
-        # 5. Clean up the job directory
+        if gsplat_return_code:
+            raise subprocess.CalledProcessError(gsplat_return_code, gsplat_cmd)
+
+        # 5. Locate and read the gsplat output
+        print("gsplat training finished. Reading output .ply file...")
+        final_ply_path = gsplat_output_dir / "point_cloud.ply"
+        
+        print(f"Checking for gsplat output file at: {final_ply_path}")
+        if not final_ply_path.exists():
+            raise FileNotFoundError(f"Could not find the gsplat output .ply file at {final_ply_path}")
+
+        print("Reading final .ply file content...")
+        output_data = final_ply_path.read_bytes()
+
+        # 6. Clean up the job directory
         print(f"Cleaning up job directory: {job_path}")
         shutil.rmtree(job_path)
         print("Cleanup complete.")

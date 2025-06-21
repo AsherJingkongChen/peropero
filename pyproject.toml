@@ -39,6 +39,7 @@ dependencies = [
   "safetensors",
   "pyceres==2.3",
   "lightglue @ git+https://github.com/jytime/LightGlue.git#egg=lightglue",
+  "gsplat @ file:./server/gsplat",
 ]
 name = "peropero"
 requires-python = ">= 3.9"
