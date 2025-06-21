@@ -57,41 +57,43 @@ class VGGTService:
         ]
 
         # 3. Execute the command
-        try:
-            print(f"Running VGGT for job {job_id}: uv run --active {' '.join(cmd)}")
-            process = subprocess.Popen(["uv", "run", "--active"] + cmd, cwd=working_dir, 
-                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        print(f"Running VGGT for job {job_id}: uv run --active {' '.join(cmd)}")
+        process = subprocess.Popen(["uv", "run", "--active"] + cmd, cwd=working_dir, 
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
-            # Stream the output
-            for line in iter(process.stdout.readline, ''):
-                print(line, end='')
-            
-            process.stdout.close()
-            return_code = process.wait()
+        # Stream the output
+        for line in iter(process.stdout.readline, ''):
+            print(line, end='')
+        
+        process.stdout.close()
+        return_code = process.wait()
 
-            if return_code:
-                raise subprocess.CalledProcessError(return_code, cmd)
-
-        except subprocess.CalledProcessError as e:
-            print(f"Error during VGGT execution for job {job_id}: {e}")
-            raise RuntimeError("Failed to execute VGGT reconstruction process.") from e
+        if return_code:
+            raise subprocess.CalledProcessError(return_code, cmd)
 
         # 4. Locate and convert the output file
+        print("VGGT process finished. Converting to .ply...")
         colmap_sparse_path = job_path / "sparse"
         points_file = colmap_sparse_path / "points3D.bin"
 
+        print(f"Checking for COLMAP points file at: {points_file}")
         if not points_file.exists():
             raise FileNotFoundError(f"Could not find the COLMAP points file at {points_file}")
 
         ply_output_path = job_path / f"{scene_name}.ply"
+        print(f"Converting COLMAP sparse reconstruction to .ply at: {ply_output_path}")
         convert_colmap_to_ply(colmap_sparse_path, ply_output_path)
         
+        print(f"Checking for converted .ply file at: {ply_output_path}")
         if not ply_output_path.exists():
             raise FileNotFoundError(f"Could not find the converted .ply file at {ply_output_path}")
 
+        print("Reading .ply file content...")
         output_data = ply_output_path.read_bytes()
 
         # 5. Clean up the job directory
+        print(f"Cleaning up job directory: {job_path}")
         shutil.rmtree(job_path)
+        print("Cleanup complete.")
 
         return output_data
