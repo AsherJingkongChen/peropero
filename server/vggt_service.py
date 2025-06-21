@@ -48,18 +48,17 @@ class VGGTService:
             img.save(vggt_image_path / f"{i:04d}.png")
 
         # 2. Construct the training command
-        working_dir = self.model_path.parent.parent # tools/view-to-3dgs
-        script_path = self.model_path / "demo_colmap.py"
+        working_dir = self.model_path
         
         cmd = [
-            "python", str(script_path),
+            "python", "demo_colmap.py",
             "--scene_dir", str(job_path),
         ]
 
         # 3. Execute the command
         try:
             print(f"Running VGGT for job {job_id}: uv run {' '.join(cmd)}")
-            process = subprocess.run(["uv", "run"] + cmd, check=True, cwd=working_dir, capture_output=True, text=True)
+            process = subprocess.run(["uv", "run"] + cmd, check=True, cwd=working_dir.resolve(), capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
             print(f"Error during VGGT execution for job {job_id}: {e}")
             print(f"stdout: {e.stdout}")
