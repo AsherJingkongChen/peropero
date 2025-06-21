@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools >= 68.0", "torch >= 2.7.0"]
+requires = ["setuptools >= 68.0"]
 
 [project]
 dependencies = [
@@ -39,7 +39,7 @@ dependencies = [
   "safetensors",
   "pyceres==2.3",
   "lightglue @ git+https://github.com/jytime/LightGlue.git#egg=lightglue",
-  "gsplat @ file:server/gsplat",
+  "gsplat",
 ]
 name = "peropero"
 requires-python = ">= 3.9"
@@ -48,6 +48,9 @@ version = "0.1.0"
 [tool.setuptools.packages.find]
 include = ["server*"]
 where = ["."]
+
+[tool.uv.sources]
+gsplat = { path = "server/gsplat" }
 
 [dependency-groups]
 dev = [
