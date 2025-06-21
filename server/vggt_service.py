@@ -58,9 +58,11 @@ class VGGTService:
         # 3. Execute the command
         try:
             print(f"Running VGGT for job {job_id}: {' '.join(cmd)}")
-            subprocess.run(cmd, check=True, cwd=working_dir)
+            process = subprocess.run(cmd, check=True, cwd=working_dir, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
             print(f"Error during VGGT execution for job {job_id}: {e}")
+            print(f"stdout: {e.stdout}")
+            print(f"stderr: {e.stderr}")
             raise RuntimeError("Failed to execute VGGT reconstruction process.") from e
 
         # 4. Locate and convert the output file
