@@ -59,11 +59,21 @@ class VGGTService:
         # 3. Execute the command
         try:
             print(f"Running VGGT for job {job_id}: uv run --active {' '.join(cmd)}")
-            process = subprocess.run(["uv", "run", "--active"] + cmd, check=True, cwd=working_dir, capture_output=True, text=True)
+            process = subprocess.Popen(["uv", "run", "--active"] + cmd, cwd=working_dir, 
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+            # Stream the output
+            for line in iter(process.stdout.readline, ''):
+                print(line, end='')
+            
+            process.stdout.close()
+            return_code = process.wait()
+
+            if return_code:
+                raise subprocess.CalledProcessError(return_code, cmd)
+
         except subprocess.CalledProcessError as e:
             print(f"Error during VGGT execution for job {job_id}: {e}")
-            print(f"stdout: {e.stdout}")
-            print(f"stderr: {e.stderr}")
             raise RuntimeError("Failed to execute VGGT reconstruction process.") from e
 
         # 4. Locate and convert the output file
