@@ -19,6 +19,9 @@ if [ ! -d \"/opt/${YOUR_PROJECT_NAME}\" ]; then \
     cd \"/opt/${YOUR_PROJECT_NAME}\" && \
     echo \"Installing dependencies...\" && \
     uv sync --quiet && \
+    echo \"Downloading VGGT model...\" && \
+    mkdir -p /root/.cache/torch/hub/checkpoints/ && \
+    curl -L https://huggingface.co/facebook/VGGT-1B/resolve/main/model.pt -o /root/.cache/torch/hub/checkpoints/model.pt && \
     cd - > /dev/null; \
 fi && \
 cd \"/opt/${YOUR_PROJECT_NAME}\" && \
